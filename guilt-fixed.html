@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UnBroken – Guilt Is Not Guidance</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #203445; min-height: 100vh; padding: 20px; }
+    .container { max-width: 800px; margin: 0 auto; background: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); padding: 30px; }
+    .progress-bar-container { background: #e9ecef; border-radius: 10px; height: 8px; margin-bottom: 8px; }
+    .progress-bar-fill { height: 100%; border-radius: 10px; background: linear-gradient(90deg, #5da0af, #acc95d); transition: width 0.4s ease; }
+    .step-counter { text-align: right; font-size: 13px; color: #6c757d; margin-bottom: 24px; }
+    .step-section { display: none; }
+    .step-section.active { display: block; }
+    .nav-buttons { display: flex; justify-content: space-between; margin-top: 32px; gap: 12px; }
+    .btn { padding: 12px 28px; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer; border: none; transition: opacity 0.2s; }
+    .btn:hover { opacity: 0.88; }
+    .btn-primary { background: #5da0af; color: white; }
+    .btn-secondary { background: #e9ecef; color: #203445; }
+    .btn-invisible { visibility: hidden; }
+    h1 { color: #203445; font-size: 26px; margin-bottom: 8px; }
+    h2 { color: #203445; font-size: 20px; margin-bottom: 12px; margin-top: 24px; }
+    p { color: #203445; margin-bottom: 14px; line-height: 1.6; }
+    textarea { width: 100%; min-height: 120px; padding: 12px; border: 1px solid #dee2e6; border-radius: 6px; font-family: inherit; font-size: 15px; resize: vertical; margin-top: 8px; }
+    textarea:focus { outline: none; border-color: #5da0af; }
+
+    /* Body Map */
+    .body-tag { display: inline-block; padding: 5px 12px; border-radius: 20px; background: #5da0af; color: white; font-size: 13px; font-weight: 600; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity:0; transform:scale(0.9); } to { opacity:1; transform:scale(1); } }
+    .body-zone { cursor: pointer; }
+    .body-zone:hover { fill: rgba(93,160,175,0.15); }
+    .body-zone.active-zone { fill: rgba(93,160,175,0.3); }
+
+    /* HGS Cards */
+    .hgs-card { padding: 13px 16px; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; font-size: 15px; line-height: 1.5; transition: all 0.2s; display: flex; align-items: center; gap: 10px; }
+    .hgs-card:hover { border-color: #dfb852; background: #fffbf0; }
+    .hgs-card.selected { border-color: #dfb852; background: #fff3cc; }
+    .hgs-check { font-size: 18px; flex-shrink: 0; transition: all 0.2s; }
+
+    /* Reveal Items */
+    .guidance-item { background: rgba(172,201,93,0.15); border-radius: 6px; padding: 11px 14px; font-size: 15px; color: #2a4a1a; opacity: 0; transform: translateX(-10px); transition: all 0.35s ease; }
+    .guidance-item.shown { opacity: 1; transform: translateX(0); }
+    .guidance-item.shown { opacity: 1; transform: translateX(0); }
+
+    /* Limit Cards */
+    .limit-card { padding: 13px 16px; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; font-size: 15px; line-height: 1.5; transition: all 0.2s; }
+    .limit-card:hover { border-color: #5da0af; background: #e8f4f6; }
+    .limit-card.selected { border-color: #5da0af; background: #d0eef4; font-weight: 600; }
+    .arrival-btn { width:100%; text-align:left; padding:13px 18px; background:white; border:2px solid #dee2e6; border-radius:10px; font-family:inherit; font-size:15px; color:#203445; cursor:pointer; transition:all .18s; line-height:1.4; }
+    .arrival-btn:hover { border-color:#5da0af; background:#f0f9fb; }
+    .arrival-btn.selected { border-color:#5da0af; background:#e0f2f7; font-weight:600; }
+
+    /* Practice Cards */
+    .practice-card { display: none; text-align: center; padding: 28px 20px; background: white; border: 2px solid #acc95d; border-radius: 12px; animation: slideUp 0.4s ease; }
+    .practice-card.active-card { display: block; }
+    @keyframes slideUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+    .pcard-number { font-size: 12px; color: #6c757d; letter-spacing: 1px; margin-bottom: 14px; }
+    .pcard-icon { font-size: 40px; margin-bottom: 12px; }
+    .pcard-title { font-size: 20px; font-weight: 700; color: #203445; margin-bottom: 14px; }
+    .pcard-body { font-size: 15px; color: #203445; line-height: 1.7; margin-bottom: 22px; }
+    .pcard-btn { background: #acc95d; color: white; border: none; padding: 11px 26px; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+    .pcard-btn:hover { opacity: 0.88; }
+
+    /* Story Cards */
+    .story-card { padding: 13px 16px; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; font-size: 15px; line-height: 1.5; transition: all 0.2s; font-style: italic; color: #555; }
+    .story-card:hover { border-color: #d56439; background: #fff5f0; }
+    .story-card.selected { border-color: #d56439; background: #ffe8df; color: #203445; font-style: normal; font-weight: 600; }
+
+    /* Likert */
+    .likert-row { margin-bottom: 22px; }
+    .likert-row p { font-weight: 600; margin-bottom: 10px; }
+    .likert-options { display: flex; gap: 8px; flex-wrap: wrap; }
+    .likert-options label { flex: 1; min-width: 52px; text-align: center; cursor: pointer; }
+    .likert-options input[type="radio"] { display: block; margin: 0 auto 4px; accent-color: #5da0af; }
+    .likert-options span { font-size: 13px; color: #6c757d; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="progress-bar-container">
+    <div class="progress-bar-fill" id="progress-bar" style="width:8%"></div>
+  </div>
+  <div class="step-counter" id="step-counter">Step 1 of 12</div>
+
+  <!-- STEP 1: Welcome + Module 4 Bridge + What You'll Learn -->
+  <div id="step-1" class="step-section active">
+    <div style="text-align:center;padding:10px 0 24px;">
+      <div style="display:inline-block;background:linear-gradient(135deg,#203445,#2d6b7a);border-radius:50%;width:72px;height:72px;line-height:72px;font-size:32px;margin-bottom:16px;">🧭</div>
+      <p style="font-size:13px;font-weight:600;color:#5da0af;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">UnBroken</p>
+      <h1 style="font-size:30px;margin-bottom:10px;">Guilt Is Not Guidance</h1>
+      <p style="color:#6c757d;font-size:15px;max-width:460px;margin:0 auto;">Welcome back. The fact that you're here — still doing this work — says something important about you.</p>
+    </div>
+
+    <div style="border-left:4px solid #5da0af;background:#e8f4f6;padding:18px 20px;border-radius:6px;margin:20px 0;">
+      <strong style="color:#3d7f8f;">Building on Your Previous Work</strong>
+      <p style="margin:8px 0 0;">In the last session, you practiced reading your inner signals — learning to tell fear-based noise from the quieter voice of your Wise Mind. That skill matters here. Because in this work, we're going to look at the <em>loudest</em> signal in the job search: guilt.</p>
+    </div>
+
+    <div style="background:#f8f9fa;border-radius:10px;padding:22px 24px;margin:20px 0;">
+      <p style="font-weight:600;color:#203445;margin-bottom:14px;">In this session you will:</p>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;align-items:flex-start;gap:12px;"><span style="color:#5da0af;font-size:18px;flex-shrink:0;line-height:1.4;">✦</span><span>Understand guilt as a learned nervous system signal — not a character flaw</span></div>
+        <div style="display:flex;align-items:flex-start;gap:12px;"><span style="color:#5da0af;font-size:18px;flex-shrink:0;line-height:1.4;">✦</span><span>Identify where guilt has been shaping your decisions during this transition</span></div>
+        <div style="display:flex;align-items:flex-start;gap:12px;"><span style="color:#5da0af;font-size:18px;flex-shrink:0;line-height:1.4;">✦</span><span>Learn to tell the difference between guilt as a signal and true inner guidance</span></div>
+        <div style="display:flex;align-items:flex-start;gap:12px;"><span style="color:#5da0af;font-size:18px;flex-shrink:0;line-height:1.4;">✦</span><span>Practice holding a limit even when guilt gets loud</span></div>
+      </div>
+    </div>
+
+    <div style="border-left:4px solid #acc95d;background:#f0f9f7;padding:16px 20px;border-radius:6px;margin:20px 0;">
+      <strong style="color:#6b8f2e;">Your intention for today</strong>
+      <p style="margin:8px 0 0;color:#6c757d;font-style:italic;">You don't need to resolve anything. Just notice.</p>
+    </div>
+  </div>
+
+  <!-- STEP 2: How are you arriving + stats + privacy -->
+  <div id="step-2" class="step-section">
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:0 0 28px;">
+      <div style="background:#e8f4f6;border-radius:8px;padding:14px;text-align:center;">
+        <div style="font-size:22px;margin-bottom:6px;">⏱</div>
+        <div style="font-size:13px;font-weight:600;color:#3d7f8f;">About 35 min</div>
+        <div style="font-size:12px;color:#6c757d;margin-top:2px;">at your own pace</div>
+      </div>
+      <div style="background:#fef9f2;border-radius:8px;padding:14px;text-align:center;">
+        <div style="font-size:22px;margin-bottom:6px;">📋</div>
+        <div style="font-size:13px;font-weight:600;color:#b8941e;">1 assessment</div>
+        <div style="font-size:12px;color:#6c757d;margin-top:2px;">Guilt Inventory</div>
+      </div>
+      <div style="background:#f0f9f7;border-radius:8px;padding:14px;text-align:center;">
+        <div style="font-size:22px;margin-bottom:6px;">🎧</div>
+        <div style="font-size:13px;font-weight:600;color:#6b8f2e;">Guided audio</div>
+        <div style="font-size:12px;color:#6c757d;margin-top:2px;">body reset practice</div>
+      </div>
+    </div>
+
+    <div style="border-left:4px solid #d56439;background:#f8f9fa;padding:24px;border-radius:6px;margin:0 0 24px;">
+      <h3 style="color:#d56439;margin-bottom:4px;">Before We Begin</h3>
+      <p style="color:#6c757d;font-size:14px;font-style:italic;margin-bottom:18px;">You just heard that guilt is not guidance. As you get ready to go deeper — how does that land for you right now?</p>
+
+      <div id="arrival-cards" style="display:flex;flex-direction:column;gap:10px;">
+        <button class="arrival-btn" onclick="selectArrival(this, 0)">That's a relief to hear</button>
+        <button class="arrival-btn" onclick="selectArrival(this, 1)">I hear it — but I don't fully believe it yet</button>
+        <button class="arrival-btn" onclick="selectArrival(this, 2)">It makes sense, but guilt still feels very loud right now</button>
+        <button class="arrival-btn" onclick="selectArrival(this, 3)">I feel some resistance to this idea</button>
+        <button class="arrival-btn" onclick="selectArrival(this, 4)">I'm curious but also a little nervous</button>
+        <button class="arrival-btn" onclick="selectArrival(this, 5)">Honestly, I feel kind of numb right now</button>
+        <button class="arrival-btn" onclick="selectArrival(this, 6)">I'm ready — let's go</button>
+        <button class="arrival-btn" onclick="selectArrival(this, 7)">I'm not sure how I feel</button>
+      </div>
+
+      <div id="arrival-response" style="display:none;margin-top:18px;padding:16px 18px;background:linear-gradient(135deg,#203445,#2d6b7a);border-radius:8px;">
+        <p id="arrival-response-text" style="color:rgba(255,255,255,0.92);margin:0;line-height:1.7;font-size:15px;"></p>
+      </div>
+    </div>
+
+    <div style="background:#e8f4f6;border-radius:6px;padding:16px 20px;margin:0;">
+      <p style="margin:0;font-size:14px;color:#6c757d;">🔒 There are no right answers here. You can pause and come back at any time. Your reflections are saved privately on your device only.</p>
+    </div>
+  </div>
+
+  <!-- STEP 2: Body Map -->
+  <div id="step-3" class="step-section">
+    <h1>Where Do You Feel It?</h1>
+    <p>Before we talk about what guilt <em>is</em>, let's start with where you feel it. Guilt doesn't just live in your thoughts — it lives in your body.</p>
+    <p style="color:#6c757d; font-size:14px; margin-bottom:16px; font-style:italic;">Tap the areas where guilt tends to land for you.</p>
+
+    <div style="display:flex; gap:20px; align-items:flex-start; margin-bottom:16px;">
+
+      <!-- Left: figure -->
+      <div style="flex-shrink:0; width:140px;">
+        <svg viewBox="0 0 160 380" xmlns="http://www.w3.org/2000/svg" style="width:100%; display:block;">
+          <defs>
+            <style>
+              .fig { fill: #dce8ec; stroke: #5da0af; stroke-width: 1.4; stroke-linejoin: round; stroke-linecap: round; transition: fill 0.25s, stroke 0.25s; }
+              .fig-neck { fill: #dce8ec; stroke: #5da0af; stroke-width: 1.4; transition: fill 0.25s, stroke 0.25s; }
+              .hit { fill: transparent; cursor: pointer; }
+              .hit:hover + .fig, .hit:hover + .fig-neck { opacity: 0.7; }
+            </style>
+          </defs>
+
+          <!-- Arms (behind torso) -->
+          <path class="fig" id="fig-larm"
+            d="M 52,102 C 40,108 28,118 22,130 C 18,140 20,152 24,162
+               C 27,170 32,174 36,172 C 40,170 42,164 44,156
+               C 47,146 50,136 56,126 C 60,118 62,110 58,104 Z"/>
+          <path class="fig" id="fig-rarm"
+            d="M 108,102 C 120,108 132,118 138,130 C 142,140 140,152 136,162
+               C 133,170 128,174 124,172 C 120,170 118,164 116,156
+               C 113,146 110,136 104,126 C 100,118 98,110 102,104 Z"/>
+
+          <!-- Torso -->
+          <path class="fig" id="fig-torso"
+            d="M 52,96 C 46,98 42,104 42,114 L 44,178
+               C 44,186 50,192 62,194 L 98,194
+               C 110,194 116,188 116,180 L 118,114
+               C 118,104 114,98 108,96
+               C 100,92 88,90 80,90
+               C 72,90 60,92 52,96 Z"/>
+
+          <!-- Hips -->
+          <path class="fig" id="fig-hips"
+            d="M 44,180 C 44,190 50,198 62,200 L 98,200
+               C 110,200 116,192 116,182 L 116,178
+               C 110,186 100,190 80,190
+               C 60,190 50,186 44,180 Z"/>
+
+          <!-- Legs -->
+          <path class="fig" id="fig-lleg"
+            d="M 56,196 C 52,198 48,204 47,214 L 44,260
+               C 43,272 45,286 47,298 C 49,308 52,316 56,320
+               C 60,324 66,324 70,320 C 74,316 75,308 75,298
+               L 75,248 C 75,236 74,220 72,210
+               C 70,202 64,196 56,196 Z"/>
+          <path class="fig" id="fig-rleg"
+            d="M 104,196 C 108,198 112,204 113,214 L 116,260
+               C 117,272 115,286 113,298 C 111,308 108,316 104,320
+               C 100,324 94,324 90,320 C 86,316 85,308 85,298
+               L 85,248 C 85,236 86,220 88,210
+               C 90,202 96,196 104,196 Z"/>
+
+          <!-- Neck -->
+          <path class="fig-neck" id="fig-neck"
+            d="M 72,76 C 70,80 70,86 72,92 C 74,96 76,98 80,98
+               C 84,98 86,96 88,92 C 90,86 90,80 88,76
+               C 86,72 84,70 80,70 C 76,70 74,72 72,76 Z"/>
+
+          <!-- Head -->
+          <ellipse class="fig" id="fig-head" cx="80" cy="48" rx="28" ry="32"/>
+
+          <!-- Soft face -->
+          <circle cx="80" cy="52" r="2" fill="#8dbec9" opacity="0.5"/>
+          <path d="M 73,60 Q 80,65 87,60" fill="none" stroke="#8dbec9" stroke-width="1.2" stroke-linecap="round" opacity="0.5"/>
+
+          <!-- Hit zones -->
+          <ellipse class="hit" cx="80" cy="48" rx="30" ry="34"
+            onclick="toggleBodyZone('head','Head &amp; mind')"/>
+          <ellipse class="hit" cx="80" cy="80" rx="16" ry="12"
+            onclick="toggleBodyZone('throat','Throat')"/>
+          <path class="hit" d="M 38,90 C 32,100 26,114 22,130 L 52,132 C 54,116 58,104 64,96 Z"
+            onclick="toggleBodyZone('shoulders','Shoulders')"/>
+          <path class="hit" d="M 122,90 C 128,100 134,114 138,130 L 108,132 C 106,116 102,104 96,96 Z"
+            onclick="toggleBodyZone('shoulders','Shoulders')"/>
+          <rect class="hit" x="50" y="94" width="60" height="50" rx="6"
+            onclick="toggleBodyZone('chest','Chest')"/>
+          <rect class="hit" x="50" y="144" width="60" height="46" rx="6"
+            onclick="toggleBodyZone('stomach','Stomach &amp; gut')"/>
+          <rect class="hit" x="40" y="194" width="76" height="130" rx="8"
+            onclick="toggleBodyZone('legs','Legs')"/>
+        </svg>
+      </div>
+
+      <!-- Right: description panel -->
+      <div style="flex:1; min-width:0; padding-top:8px;">
+
+        <!-- Default prompt -->
+        <div id="zone-default" style="height:100%; display:flex; flex-direction:column; justify-content:center; padding:16px 0;">
+          <p style="font-size:14px; color:#adb5bd; font-style:italic; line-height:1.6; margin:0;">Tap a part of the body to see what guilt might feel like there.</p>
+        </div>
+
+        <!-- Zone descriptions (hidden until tapped) -->
+        <div id="zone-panel" style="display:none;">
+          <div id="zone-label" style="font-size:12px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:#5da0af; margin-bottom:8px;"></div>
+          <div id="zone-title" style="font-size:18px; font-weight:700; color:#203445; margin-bottom:10px; line-height:1.3;"></div>
+          <div id="zone-desc" style="font-size:14px; color:#495057; line-height:1.7; margin-bottom:14px;"></div>
+          <div id="zone-tags" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Selected areas summary -->
+    <div id="body-tags" style="min-height:32px; display:flex; flex-wrap:wrap; gap:8px; margin-bottom:4px;">
+      <span style="color:#6c757d; font-size:13px; font-style:italic;">Nothing selected yet — tap the figure</span>
+    </div>
+
+    <div id="body-science" style="display:none;">
+      <div style="background:#fffdf0; border:1px solid #dfb852; border-radius:8px; padding:20px; margin:16px 0;">
+        <h3 style="color:#b8941e; margin-bottom:10px;">🧠 Why Your Body Is Right</h3>
+        <p style="margin:0 0 12px;">Guilt is a <em>social regulation signal</em> — your nervous system's way of detecting relational risk. Humans evolved in tight groups where belonging meant survival. Disappointing others registered as a real threat, and your body responded accordingly.</p>
+        <p style="margin:0 0 12px;">What you feel in your <strong id="body-zone-echo" style="color:#d4a017;"></strong> — that's not weakness. That's your nervous system doing exactly what it learned to do.</p>
+        <p style="margin:0; font-style:italic; color:#6c757d;">That signal was useful once. It kept you connected, employed, safe. It doesn't know the context has changed — it's still running the old program, because that program worked.</p>
+      </div>
+      <div style="border-left:4px solid #5da0af; background:#e8f4f6; padding:18px 20px; border-radius:6px; margin:16px 0; font-style:italic;">
+        <p style="margin:0; color:#203445;">"The body keeps the score — but it also keeps the old instructions."</p>
+        <p style="margin:8px 0 0; font-style:normal; font-size:14px; color:#6c757d;">— Adapted from Bessel van der Kolk, <em>The Body Keeps the Score</em></p>
+      </div>
+      <div style="background:#e8f4f6; border-radius:6px; padding:16px 20px; margin:16px 0;">
+        <p style="margin:0;"><strong>Gentle reminder:</strong> That's not weakness. That's conditioning. And conditioning can be unlearned.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3: Human Giver Syndrome -->
+  <div id="step-4" class="step-section">
+    <h1>When Guilt Becomes an Operating System</h1>
+    <p>For some people, guilt isn't just an occasional feeling — it's the default framework for every decision.</p>
+
+    <div style="border-left:4px solid #dfb852; background:#fef9f2; padding:24px; border-radius:6px; margin:20px 0;">
+      <h3 style="color:#d4a017; margin-bottom:8px;">💡 Human Giver Syndrome</h3>
+      <p style="color:#6c757d; font-size:14px; font-style:italic; margin-bottom:14px;">Researchers Emily and Amelia Nagoski describe a pattern where your moral worth becomes tied to how much you give, sacrifice, and make yourself available for others. It's especially common in public service, caregiving, and mission-driven work.</p>
+      <p style="font-weight:600; margin-bottom:12px;">Which of these sound familiar? Tap everything that resonates.</p>
+      <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:16px;">
+        <div class="hgs-card" onclick="toggleHGS(this)"><span class="hgs-check">○</span>Rest must be earned — I shouldn't stop until the work is done</div>
+        <div class="hgs-card" onclick="toggleHGS(this)"><span class="hgs-check">○</span>My needs come after everyone else's</div>
+        <div class="hgs-card" onclick="toggleHGS(this)"><span class="hgs-check">○</span>Saying no feels selfish, even when I'm depleted</div>
+        <div class="hgs-card" onclick="toggleHGS(this)"><span class="hgs-check">○</span>Sacrifice <em>is</em> how I prove I care</div>
+        <div class="hgs-card" onclick="toggleHGS(this)"><span class="hgs-check">○</span>Guilt equals integrity — feeling guilty means I must be doing something wrong</div>
+        <div class="hgs-card" onclick="toggleHGS(this)"><span class="hgs-check">○</span>No matter how much I give, it never feels like enough</div>
+        <div class="hgs-card" onclick="toggleHGS(this)"><span class="hgs-check">○</span>Asking for help feels like weakness or failure</div>
+      </div>
+      <div id="hgs-response" style="display:none; padding:14px 16px; background:#fff8e6; border-radius:8px; border-left:3px solid #dfb852;">
+        <p style="margin:0; font-size:14px; color:#203445;" id="hgs-response-text"></p>
+      </div>
+    </div>
+
+    <p>I want to name something specific for those who worked in federal service or other high-stakes public roles. You were often rewarded for pushing through, for absorbing the cost. Guilt became the engine — and it ran you hard.</p>
+    <p>You're in a rebuilding phase now. Guilt will try to run the same program. <em>If you're not applying to 15 jobs a day, you don't care about your future.</em> That's the old operating system. It doesn't have accurate information about where you are or what you actually need.</p>
+
+    <div style="border-left:4px solid #d56439; background:#f8f9fa; padding:24px; border-radius:6px; margin:24px 0;">
+      <h3 style="color:#d56439; margin-bottom:4px;">Pause & Reflect</h3>
+      <p style="color:#6c757d; font-size:14px; font-style:italic; margin-bottom:16px;">Take about 4 minutes</p>
+      <h4 style="color:#203445; margin-bottom:16px;">Where did you first learn that sacrificing yourself meant you cared?</h4>
+      <div style="border:1px solid #5da0af; border-radius:6px; margin-bottom:12px; overflow:hidden;">
+        <button onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'"
+          style="width:100%; text-align:left; padding:12px 16px; background:#e8f4f6; border:none; cursor:pointer; font-size:14px; color:#3d7f8f; font-family:inherit;">
+          💡 Not sure where to start? Try one of these...
+        </button>
+        <div style="display:none; padding:14px 16px; background:#f0f9fb;">
+          <ul style="margin:0; padding-left:20px; font-size:14px; color:#203445; line-height:2;">
+            <li>My family — no one talked about their own needs, they just kept giving</li>
+            <li>My workplace rewarded people who worked the longest and complained the least</li>
+            <li>I'm not sure — I just always felt like I had to earn the right to rest</li>
+            <li>My community — asking for help felt like weakness</li>
+          </ul>
+        </div>
+      </div>
+      <textarea id="reflect-3" placeholder="You don't need to share this with anyone. This is just for you."></textarea>
+    </div>
+  </div>
+
+  <!-- STEP 4: Guilt vs Guidance Reveal -->
+  <div id="step-5" class="step-section">
+    <h1>Guilt vs. True Guidance</h1>
+    <p>Both feel like they're telling you something important. The difference is in what they're asking you to do with that information.</p>
+
+    <div style="background:#fff5f0; border:1px solid #d56439; border-radius:8px; padding:20px; margin:16px 0;">
+      <h3 style="color:#d56439; margin-bottom:14px;">⚡ Guilt as Signal</h3>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="background:rgba(213,100,57,0.08); border-radius:6px; padding:11px 14px; font-size:15px; color:#5a2a1a;">Feels heavy, punishing, urgent</div>
+        <div style="background:rgba(213,100,57,0.08); border-radius:6px; padding:11px 14px; font-size:15px; color:#5a2a1a;">Tells you to sacrifice yourself to prove you care</div>
+        <div style="background:rgba(213,100,57,0.08); border-radius:6px; padding:11px 14px; font-size:15px; color:#5a2a1a;">Gets louder when you try to hold a limit</div>
+        <div style="background:rgba(213,100,57,0.08); border-radius:6px; padding:11px 14px; font-size:15px; color:#5a2a1a;">Exhausting to follow — and it still doesn't feel like enough</div>
+        <div style="background:rgba(213,100,57,0.08); border-radius:6px; padding:11px 14px; font-size:15px; color:#5a2a1a;">Based on old learning, not current reality</div>
+      </div>
+      <button id="reveal-guilt-btn" onclick="revealGuiltItems()"
+        style="margin-top:16px; background:#d56439; color:white; border:none; padding:10px 22px; border-radius:6px; font-size:14px; font-weight:600; cursor:pointer;">
+        Does this sound familiar? →
+      </button>
+    </div>
+
+    <div id="guidance-panel" style="display:none;">
+      <p style="text-align:center; color:#6c757d; font-style:italic; margin:16px 0 8px;">Now — what true guidance sounds like instead:</p>
+      <div style="background:#f0f9f7; border:1px solid #acc95d; border-radius:8px; padding:20px; margin:0 0 16px;">
+        <h3 style="color:#6b8f2e; margin-bottom:14px;">🧭 True Guidance</h3>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <div class="guidance-item">Feels clear, even when it's uncomfortable</div>
+          <div class="guidance-item">Aligned with your actual values — not fear of judgment</div>
+          <div class="guidance-item">Brings a sense of relief, even when it's not what you hoped to hear</div>
+          <div class="guidance-item">Comes from Wise Mind — the steady place underneath the noise</div>
+          <div class="guidance-item">Protective, not punishing</div>
+        </div>
+      </div>
+
+      <div style="background:linear-gradient(135deg,#203445,#2d6b7a); color:white; padding:24px; border-radius:8px; margin:20px 0;">
+        <h3 style="color:white; margin-bottom:10px;">✨ Key Insight</h3>
+        <p style="color:rgba(255,255,255,0.92); margin:0; font-size:17px; line-height:1.6;">Guilt says <em>I care about this person or situation.</em> That part is true. But then guilt tries to convince you that caring means sacrificing yourself. That part is not true.</p>
+      </div>
+
+      <div style="border-left:4px solid #dfb852; background:#fef9f2; padding:24px; border-radius:6px; margin:20px 0;">
+        <h3 style="color:#d4a017; margin-bottom:8px;">💡 A Concrete Example: Guilt Around Rest</h3>
+        <p><strong>Guilt says:</strong> <em>"You don't deserve rest. You should be applying. Resting means you've given up."</em></p>
+        <p><strong>True guidance says:</strong> Rest is productive. Your nervous system needs it to keep functioning. Rest isn't a reward — it's a requirement.</p>
+        <p style="margin-bottom:0;"><strong>The move:</strong> You rest anyway. You notice the guilt is there. You don't follow its instructions.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 5: Guilt Inventory -->
+  <div id="step-6" class="step-section">
+    <h1>Your Guilt Inventory</h1>
+    <p>This isn't a test. It's a way to get honest about where guilt has been showing up for you right now.</p>
+    <p>Many people in job loss carry something that rarely gets named: the belief — spoken or unspoken — that the loss was somehow their fault. This inventory is designed to help you see that pattern clearly, so you can work with it rather than be run by it.</p>
+
+    <div style="border-left:4px solid #5da0af; background:#e8f4f6; padding:24px; border-radius:6px; margin:24px 0;">
+      <h3 style="color:#3d7f8f; margin-bottom:4px;">📋 Guilt in Job Loss — Self-Assessment</h3>
+      <p style="color:#6c757d; font-size:14px; font-style:italic; margin-bottom:20px;">Rate each statement from 1 (not at all) to 5 (completely). There are no right answers here.</p>
+
+      <div class="likert-row">
+        <p>I feel responsible for losing my job, even when I know it wasn't entirely in my control.</p>
+        <div class="likert-options">
+          <label><input type="radio" name="gq1" value="1"><span>1<br>Not at all</span></label>
+          <label><input type="radio" name="gq1" value="2"><span>2</span></label>
+          <label><input type="radio" name="gq1" value="3"><span>3<br>Sometimes</span></label>
+          <label><input type="radio" name="gq1" value="4"><span>4</span></label>
+          <label><input type="radio" name="gq1" value="5"><span>5<br>Completely</span></label>
+        </div>
+      </div>
+      <div class="likert-row">
+        <p>I feel guilty when I rest or take time away from job searching.</p>
+        <div class="likert-options">
+          <label><input type="radio" name="gq2" value="1"><span>1<br>Not at all</span></label>
+          <label><input type="radio" name="gq2" value="2"><span>2</span></label>
+          <label><input type="radio" name="gq2" value="3"><span>3<br>Sometimes</span></label>
+          <label><input type="radio" name="gq2" value="4"><span>4</span></label>
+          <label><input type="radio" name="gq2" value="5"><span>5<br>Completely</span></label>
+        </div>
+      </div>
+      <div class="likert-row">
+        <p>I find it hard to say no to requests — even ones that don't serve my recovery — because I'm afraid of seeming difficult or ungrateful.</p>
+        <div class="likert-options">
+          <label><input type="radio" name="gq3" value="1"><span>1<br>Not at all</span></label>
+          <label><input type="radio" name="gq3" value="2"><span>2</span></label>
+          <label><input type="radio" name="gq3" value="3"><span>3<br>Sometimes</span></label>
+          <label><input type="radio" name="gq3" value="4"><span>4</span></label>
+          <label><input type="radio" name="gq3" value="5"><span>5<br>Completely</span></label>
+        </div>
+      </div>
+      <div class="likert-row">
+        <p>I feel like a burden to the people around me — financially, emotionally, or both.</p>
+        <div class="likert-options">
+          <label><input type="radio" name="gq4" value="1"><span>1<br>Not at all</span></label>
+          <label><input type="radio" name="gq4" value="2"><span>2</span></label>
+          <label><input type="radio" name="gq4" value="3"><span>3<br>Sometimes</span></label>
+          <label><input type="radio" name="gq4" value="4"><span>4</span></label>
+          <label><input type="radio" name="gq4" value="5"><span>5<br>Completely</span></label>
+        </div>
+      </div>
+      <div class="likert-row">
+        <p>When I set a limit — with my job search, my time, or my energy — I feel like something bad will happen because of it.</p>
+        <div class="likert-options">
+          <label><input type="radio" name="gq5" value="1"><span>1<br>Not at all</span></label>
+          <label><input type="radio" name="gq5" value="2"><span>2</span></label>
+          <label><input type="radio" name="gq5" value="3"><span>3<br>Sometimes</span></label>
+          <label><input type="radio" name="gq5" value="4"><span>4</span></label>
+          <label><input type="radio" name="gq5" value="5"><span>5<br>Completely</span></label>
+        </div>
+      </div>
+      <div class="likert-row">
+        <p>I keep my pain hidden from others because I don't want them to worry or think less of me.</p>
+        <div class="likert-options">
+          <label><input type="radio" name="gq6" value="1"><span>1<br>Not at all</span></label>
+          <label><input type="radio" name="gq6" value="2"><span>2</span></label>
+          <label><input type="radio" name="gq6" value="3"><span>3<br>Sometimes</span></label>
+          <label><input type="radio" name="gq6" value="4"><span>4</span></label>
+          <label><input type="radio" name="gq6" value="5"><span>5<br>Completely</span></label>
+        </div>
+      </div>
+
+      <button onclick="scoreGuiltAssessment()"
+        style="background:#5da0af; color:white; border:none; padding:12px 28px; border-radius:6px; font-size:15px; font-weight:600; cursor:pointer; margin-top:8px;">
+        See What Your Responses Suggest →
+      </button>
+
+      <div id="guilt-results" style="display:none; margin-top:24px;">
+        <div style="background:linear-gradient(135deg,#203445,#2d6b7a); color:white; padding:24px; border-radius:8px;">
+          <h3 style="color:white; margin-bottom:12px;">What Your Responses Suggest</h3>
+          <div id="guilt-badge" style="display:inline-block; padding:6px 16px; border-radius:20px; font-weight:700; font-size:15px; margin-bottom:14px;"></div>
+          <p id="guilt-interpretation" style="color:rgba(255,255,255,0.92); line-height:1.7; margin-bottom:12px;"></p>
+          <p style="color:rgba(255,255,255,0.65); font-size:13px; font-style:italic;">This isn't a diagnosis — it's a signal worth paying attention to. Whatever your score, you're in the right place.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 6: Nedra + Limit Selector -->
+  <div id="step-7" class="step-section">
+    <h1>Limits as Values in Action</h1>
+    <p>Let's talk about what a limit actually is — because guilt has probably given you some inaccurate information about that too.</p>
+
+    <div style="border-left:4px solid #5da0af; background:#e8f4f6; padding:18px 20px; border-radius:6px; margin:20px 0; font-style:italic;">
+      <p style="margin:0; color:#203445;">"A boundary is what you need in order to function well and feel good about how you're showing up in your life and relationships."</p>
+      <p style="margin:8px 0 0; font-style:normal; font-size:14px; color:#6c757d;">— Nedra Tawwab, <em>Set Boundaries, Find Peace</em></p>
+    </div>
+
+    <p>Notice what that definition does <em>not</em> say. Not a punishment. Not a wall. Not evidence that you don't care. A limit is simply a statement of what you need to show up well.</p>
+    <p>When you say <em>"I can't take on unpaid work right now"</em> — that's not difficult, that's a value. When you say <em>"I need to rest today"</em> — that's not giving up, that's your nervous system communicating a real need.</p>
+    <p><strong>If guilt showed up after you set a limit — that often means the limit was real.</strong> Guilt is registering the change, not telling you the change was wrong.</p>
+
+    <div style="border-left:4px solid #5da0af; background:#e8f4f6; padding:24px; border-radius:6px; margin:20px 0;">
+      <h3 style="color:#3d7f8f; margin-bottom:6px;">Which limit do you most need right now?</h3>
+      <p style="color:#6c757d; font-size:14px; font-style:italic; margin-bottom:16px;">Tap one. There's no wrong answer.</p>
+      <div style="display:flex; flex-direction:column; gap:10px;" id="limit-cards">
+        <div class="limit-card" onclick="selectLimit(this)" data-response="The permission to rest without earning it first. Your nervous system needs recovery — not as a reward for hard work, but as fuel for what's ahead.">🛌 Permission to rest without earning it first</div>
+        <div class="limit-card" onclick="selectLimit(this)" data-response="The right to say no to unpaid work. Your time and skills have value — especially now, when your resources are stretched.">🚫 The right to say no to unpaid work</div>
+        <div class="limit-card" onclick="selectLimit(this)" data-response="Space to grieve this loss without performing recovery for others. Healing isn't linear, and you don't owe anyone a timeline.">🌊 Space to grieve without performing recovery</div>
+        <div class="limit-card" onclick="selectLimit(this)" data-response="Protection from the pace others expect of your job search. You get to define what 'trying hard enough' looks like for you right now.">⏱️ Protection from others' expectations about pace</div>
+        <div class="limit-card" onclick="selectLimit(this)" data-response="Distance from people or situations that consistently drain you. Being selective with your energy isn't coldness — it's strategy.">🔋 Distance from what consistently drains you</div>
+        <div class="limit-card" onclick="selectLimit(this)" data-response="The freedom to be selective about what you apply for. Quality over quantity is a values-aligned approach, not laziness.">🎯 Freedom to be selective about what you apply for</div>
+      </div>
+      <div id="limit-response" style="display:none; margin-top:16px; padding:14px 16px; background:#d0eef4; border-radius:8px; border-left:3px solid #5da0af;">
+        <p style="margin:0 0 6px; font-weight:600; font-size:14px; color:#203445;">That's a real need.</p>
+        <p style="margin:0; font-size:14px; color:#203445;" id="limit-response-text"></p>
+      </div>
+    </div>
+
+    <div style="background:#e8f4f6; border-radius:6px; padding:16px 20px; margin:16px 0;">
+      <p style="margin:0;"><strong>Gentle reminder:</strong> You are allowed to have needs during this period. Having needs doesn't make you a burden — it makes you human.</p>
+    </div>
+  </div>
+
+  <!-- STEP 7: Rescuing Dynamic -->
+  <div id="step-8" class="step-section">
+    <h1>When You Collapse a Limit, What Actually Happens?</h1>
+    <p>This one is worth sitting with, because it rarely gets named.</p>
+
+    <div style="background:linear-gradient(135deg,#203445,#2d6b7a); color:white; padding:24px; border-radius:8px; margin:28px 0;">
+      <h3 style="color:white; margin-bottom:10px;">✨ Key Insight</h3>
+      <p style="color:rgba(255,255,255,0.92); margin:0; font-size:17px; line-height:1.6;">When you pull back a limit out of guilt, you rescue the other person from having to find another solution. You absorb the cost so they don't have to. And in doing that, you teach them — without meaning to — that pushing hard enough works.</p>
+    </div>
+
+    <p>This isn't about blame. The other person may not even realize what's happening. But the dynamic is real: you take on what isn't yours to carry, and the pattern continues.</p>
+
+    <div style="border-left:4px solid #dfb852; background:#fef9f2; padding:24px; border-radius:6px; margin:20px 0;">
+      <h3 style="color:#d4a017; margin-bottom:8px;">💡 The Reframe</h3>
+      <p style="margin-bottom:12px;">When you hold a limit even when it's uncomfortable, you're not being cruel. You're:</p>
+      <ul style="padding-left:20px; line-height:2.2; margin-bottom:0;">
+        <li>Allowing the other person to find their own solution</li>
+        <li>Teaching them that your limits are real</li>
+        <li>Modeling that relationships can have edges and still be caring</li>
+        <li>Protecting your own capacity to keep going</li>
+      </ul>
+    </div>
+
+    <!-- Video: Saying No -->
+    <div style="background:#f8f9fa; border-radius:12px; overflow:hidden; margin:28px 0; border:1px solid #dee2e6;">
+      <div style="padding:20px 24px 16px;">
+        <p style="font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#5da0af; margin-bottom:6px;">Watch · Narrated by Brenda</p>
+        <h3 style="color:#203445; font-size:18px; margin-bottom:6px;">Saying No When Guilt Gets Loud</h3>
+        <p style="font-size:14px; color:#6c757d; margin:0;">What it actually looks like to hold a limit in the moment — and how the other person's reaction is information, not instruction.</p>
+      </div>
+      <div style="padding:24px; background:linear-gradient(135deg,#203445,#2d5068); text-align:center;">
+        <div style="font-size:40px; margin-bottom:12px;">▶</div>
+        <p style="color:rgba(255,255,255,0.85); font-size:15px; margin-bottom:20px;">This video opens on YouTube — it will play in a new tab so you can return here when you're done.</p>
+        <a href="https://youtube.com/shorts/_zQpHVQmQ2c?feature=share" target="_blank" rel="noopener noreferrer"
+          style="display:inline-block; background:#5da0af; color:white; padding:13px 32px; border-radius:6px; font-weight:700; font-size:15px; text-decoration:none; transition:opacity 0.2s;"
+          onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">
+          Watch on YouTube →
+        </a>
+      </div>
+    </div>
+
+    <div style="border-left:4px solid #d56439; background:#f8f9fa; padding:24px; border-radius:6px; margin:24px 0;">
+      <h3 style="color:#d56439; margin-bottom:4px;">Pause & Reflect</h3>
+      <p style="color:#6c757d; font-size:14px; font-style:italic; margin-bottom:16px;">Take about 5 minutes</p>
+      <h4 style="color:#203445; margin-bottom:16px;">Think of a time you collapsed a limit because the guilt got too loud. What were you trying to protect? What did it cost you?</h4>
+      <div style="border:1px solid #5da0af; border-radius:6px; margin-bottom:12px; overflow:hidden;">
+        <button onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'"
+          style="width:100%; text-align:left; padding:12px 16px; background:#e8f4f6; border:none; cursor:pointer; font-size:14px; color:#3d7f8f; font-family:inherit;">
+          💡 Not sure where to start? Try one of these...
+        </button>
+        <div style="display:none; padding:14px 16px; background:#f0f9fb;">
+          <ul style="margin:0; padding-left:20px; font-size:14px; color:#203445; line-height:2;">
+            <li>I kept saying yes to my old workplace after I left — I didn't want to burn bridges</li>
+            <li>I helped a family member through a crisis when I had nothing left</li>
+            <li>I took on a volunteer project I couldn't afford to give time to</li>
+            <li>I kept applying to jobs that weren't right for me because being selective felt selfish</li>
+          </ul>
+        </div>
+      </div>
+      <textarea id="reflect-7" placeholder="You don't need to share this with anyone. This is just for you."></textarea>
+    </div>
+  </div>
+
+  <!-- STEP 8: Nervous System + Practice Cards -->
+  <div id="step-9" class="step-section">
+    <h1>Your Nervous System Is Not Wrong</h1>
+    <p>When guilt gets louder after you hold a limit — that's not a warning. That's your nervous system noticing a change from a familiar pattern. <strong>Loudness is not wrongness.</strong></p>
+
+    <div style="background:#fffdf0; border:1px solid #dfb852; border-radius:8px; padding:20px; margin:20px 0;">
+      <h3 style="color:#b8941e; margin-bottom:10px;">🧠 Why Guilt Gets Louder First</h3>
+      <p style="margin:0 0 10px;">When you change a long-practiced pattern, your nervous system enters what's called an <em>extinction burst</em> — the signal intensifies before it quiets, because your system is trying harder to return to what's familiar.</p>
+      <p style="margin:0;">This is completely normal. It doesn't mean you're making a mistake. It means the pattern is actually changing.</p>
+    </div>
+
+    <p>Your nervous system has practiced guilt for a long time. It takes repetition for it to learn that a new pattern is safe. Here's a four-step practice to help you move through it each time it comes up.</p>
+
+    <div style="background:#f0f9f7; border:1px solid #acc95d; border-radius:12px; padding:24px; margin:20px 0;">
+      <h3 style="color:#6b8f2e; margin-bottom:6px;">When Guilt Shows Up — Tap Through</h3>
+      <p style="color:#6c757d; font-size:14px; margin-bottom:18px;">Work through each step at your own pace.</p>
+      <div id="practice-cards">
+        <div class="practice-card active-card" id="pcard-1">
+          <div class="pcard-number">1 of 4</div>
+          <div class="pcard-title">Name It</div>
+          <div class="pcard-body">Just notice guilt without reacting to it.<br><br><em style="color:#5da0af; font-size:17px;">"Guilt is here."</em><br><br>You don't have to fix it or follow it — just name it.</div>
+          <button class="pcard-btn" onclick="advancePractice(2)">I see it →</button>
+        </div>
+        <div class="practice-card" id="pcard-2">
+          <div class="pcard-number">2 of 4</div>
+          <div class="pcard-title">Acknowledge It</div>
+          <div class="pcard-body">Guilt isn't the enemy. It learned this pattern trying to keep you safe.<br><br><em style="color:#5da0af; font-size:17px;">"I know you mean well."</em><br><br>You don't need to argue with it. Just acknowledge it.</div>
+          <button class="pcard-btn" onclick="advancePractice(3)">I hear it →</button>
+        </div>
+        <div class="practice-card" id="pcard-3">
+          <div class="pcard-number">3 of 4</div>
+          <div class="pcard-title">Hold the Limit Anyway</div>
+          <div class="pcard-body">The limit doesn't disappear because guilt is loud.<br><br><em style="color:#5da0af; font-size:17px;">"I'm going to stay with this."</em><br><br>This is the moment the new pattern gets built.</div>
+          <button class="pcard-btn" onclick="advancePractice(4)">I'm staying →</button>
+        </div>
+        <div class="practice-card" id="pcard-4">
+          <div class="pcard-number">4 of 4</div>
+          <div class="pcard-title">Complete the Cycle</div>
+          <div class="pcard-body">Your body needs a physical signal that the threat has passed.<br><br><strong>Breathe in for 4 counts. Out for 6.</strong><br><br>A walk. A stretch. Anything that moves it through.<br><br><em style="color:#6c757d;">You're not starting over. You're building something new.</em></div>
+          <button class="pcard-btn" onclick="advancePractice('done')" style="background:#acc95d;">I've got this ✓</button>
+        </div>
+        <div class="practice-card" id="pcard-done">
+          <div class="pcard-title">That's the practice.</div>
+          <div class="pcard-body" style="color:#6c757d;">Four steps. Come back to this any time guilt gets loud. It doesn't need to take long — it just needs to be done.</div>
+          <button class="pcard-btn" onclick="advancePractice(1)" style="background:#e9ecef; color:#203445;">Start again ↺</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:#e8f4f6; border-radius:6px; padding:16px 20px; margin:16px 0;">
+      <p style="margin:0;"><strong>Gentle reminder:</strong> You are not starting over every time guilt shows up. You are building a new pattern. That takes repetition, not perfection.</p>
+    </div>
+  </div>
+
+  <!-- STEP 9: Story Selector + Narrative Reflection -->
+  <div id="step-10" class="step-section">
+    <h1>Getting Curious About the Story</h1>
+    <p>Guilt almost always comes with a story attached — a narrative about who you are, what you should be doing, what it means that you're not doing it.</p>
+    <p>Narrative therapy invites us to look at that story — not to erase it, but to ask: <em>whose story is this? When did I first hear it? Does it still fit?</em></p>
+
+    <div style="border-left:4px solid #d56439; background:#f8f9fa; padding:24px; border-radius:6px; margin:24px 0;">
+      <h3 style="color:#d56439; margin-bottom:4px;">Pause & Reflect</h3>
+      <p style="color:#6c757d; font-size:14px; font-style:italic; margin-bottom:16px;">This one is worth sitting with</p>
+
+      <p style="font-weight:600; margin-bottom:12px;">First: which of these dominant stories has guilt been telling you? Tap all that apply.</p>
+
+      <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;" id="story-cards">
+        <div class="story-card" onclick="toggleStory(this)">"I failed. If I'd worked harder, this wouldn't have happened."</div>
+        <div class="story-card" onclick="toggleStory(this)">"I should have seen this coming and protected myself."</div>
+        <div class="story-card" onclick="toggleStory(this)">"I don't deserve rest until I've fixed this."</div>
+        <div class="story-card" onclick="toggleStory(this)">"Good people don't need to protect themselves from others."</div>
+        <div class="story-card" onclick="toggleStory(this)">"I'm a burden to the people around me."</div>
+        <div class="story-card" onclick="toggleStory(this)">"Something must be wrong with me — other people seem to handle this better."</div>
+        <div class="story-card" onclick="toggleStory(this)">"I'm ungrateful / difficult / picky for having standards right now."</div>
+      </div>
+
+      <div id="story-affirm" style="display:none; padding:12px 16px; background:#fff5f0; border-radius:8px; border-left:3px solid #d56439; margin-bottom:20px;">
+        <p style="margin:0; font-size:14px; color:#203445;"><strong>Noticed.</strong> Those stories make sense — guilt has been telling them for a long time. That doesn't make them true. Now let's make space for the other story.</p>
+      </div>
+
+      <h4 style="color:#203445; margin-bottom:10px;">Now — what's the alternative story? The one that's also true, that guilt doesn't tell?</h4>
+      <div style="border:1px solid #5da0af; border-radius:6px; margin-bottom:12px; overflow:hidden;">
+        <button onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'"
+          style="width:100%; text-align:left; padding:12px 16px; background:#e8f4f6; border:none; cursor:pointer; font-size:14px; color:#3d7f8f; font-family:inherit;">
+          💡 Not sure where to start? Try one of these...
+        </button>
+        <div style="display:none; padding:14px 16px; background:#f0f9fb;">
+          <ul style="margin:0; padding-left:20px; font-size:14px; color:#203445; line-height:2;">
+            <li>Something a trusted person has said about me that I haven't fully let in</li>
+            <li>Something I've done since the loss that took real courage, even if small</li>
+            <li>A value I've actually been living, even while struggling</li>
+            <li>What I would tell a close friend in my exact situation</li>
+          </ul>
+        </div>
+      </div>
+      <textarea id="reflect-9b" placeholder="You don't need to share this with anyone. This is just for you."></textarea>
+    </div>
+  </div>
+
+  <!-- STEP 10: Audio Player Shell -->
+  <div id="step-11" class="step-section">
+    <h1>Completing the Cycle</h1>
+    <p>Guilt doesn't just live in your thoughts. It lives in your body — in the tight chest, the shallow breathing, the low-grade restlessness that doesn't quite go away.</p>
+
+    <div style="background:#fffdf0; border:1px solid #dfb852; border-radius:8px; padding:20px; margin:20px 0;">
+      <h3 style="color:#b8941e; margin-bottom:10px;">🧠 Why the Body Needs to Complete</h3>
+      <p style="margin:0 0 12px;">The Nagoski research on burnout is clear: the stress response was designed to have a physical endpoint — movement, breath, a signal of safety. When we only process stress in our heads, the body doesn't receive that signal. The cycle stays open. The guilt stays activated.</p>
+      <p style="margin:0;">The practice below is designed to give your nervous system a moment of physical resolution — not to erase anything, just to help close the loop.</p>
+    </div>
+
+    <audio id="meditation-audio" src="guilt-body-reset.mp3" preload="auto"></audio>
+    <div style="background:linear-gradient(135deg,#203445,#2d5068); border-radius:12px; padding:28px; margin:24px 0; color:white;">
+      <h3 style="color:white; margin-bottom:6px;">🎧 Guided Practice</h3>
+      <p style="color:rgba(255,255,255,0.75); font-size:14px; margin-bottom:4px;">Releasing Guilt from the Body</p>
+      <p style="color:rgba(255,255,255,0.5); font-size:13px; margin-bottom:20px; font-style:italic;">Audio file: guilt-body-reset.mp3 — approx. 7 minutes</p>
+      <div style="display:flex; align-items:center; gap:16px; margin-bottom:16px;">
+        <button id="play-btn" onclick="togglePlay()"
+          style="width:52px; height:52px; border-radius:50%; background:#5da0af; border:none; color:white; font-size:20px; cursor:pointer; flex-shrink:0;">▶</button>
+        <div style="flex:1;">
+          <div id="audio-progress-bar" onclick="seekAudio(event)"
+            style="height:6px; background:rgba(255,255,255,0.2); border-radius:3px; cursor:pointer; position:relative;">
+            <div id="audio-fill" style="height:100%; width:0%; border-radius:3px; background:linear-gradient(90deg,#5da0af,#acc95d); transition:width 0.5s linear;"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-top:6px; font-size:12px; color:rgba(255,255,255,0.6);">
+            <span id="current-time">0:00</span><span id="total-time">0:00</span>
+          </div>
+        </div>
+      </div>
+      <p style="color:rgba(255,255,255,0.55); font-size:13px; margin:0;">Find a comfortable position. Eyes open or closed. This practice asks very little of you.</p>
+    </div>
+
+    <div style="background:#e8f4f6; border-radius:6px; padding:16px 20px; margin:16px 0;">
+      <p style="margin:0;"><strong>Gentle reminder:</strong> If audio isn't possible right now, try this: breathe in for 4 counts, out for 6. Repeat three times. That's a completion too.</p>
+    </div>
+  </div>
+
+  <!-- STEP 11: Completion -->
+  <div id="step-12" class="step-section">
+    <h1>You Showed Up</h1>
+    <p>That matters. This work asked you to look honestly at something that's been running quietly — or loudly — in the background. That takes courage.</p>
+
+    <div style="background:linear-gradient(135deg,#203445,#2d6b7a); color:white; padding:24px; border-radius:8px; margin:28px 0;">
+      <h3 style="color:white; margin-bottom:14px;">✨ What You've Explored</h3>
+      <ul style="color:rgba(255,255,255,0.92); padding-left:20px; line-height:2.2; margin:0;">
+        <li>Guilt is a learned nervous system signal — not a character flaw, not a moral compass</li>
+        <li>For many people, guilt became an operating system: sacrifice = caring = worth</li>
+        <li>Guilt and true guidance feel different — one is punishing, one is protective</li>
+        <li>Limits are values expressed — statements of what you need to function well</li>
+        <li>When you hold a limit, you allow the other person to find their own solution</li>
+        <li>Guilt getting louder means your pattern is changing — not that you're wrong</li>
+        <li>The alternative story — the one guilt doesn't tell — is also true</li>
+      </ul>
+    </div>
+
+    <div style="border-left:4px solid #dfb852; background:#fef9f2; padding:24px; border-radius:6px; margin:20px 0;">
+      <h3 style="color:#d4a017; margin-bottom:8px;">💡 Something to Carry With You</h3>
+      <p style="margin-bottom:0;">When guilt shows up: <strong>notice it, thank it, and hold your limit anyway.</strong> Your guilt will probably get louder before it gets quieter. That's normal — it means the limit is real. Keep going.</p>
+    </div>
+
+    <div style="background:linear-gradient(135deg,#203445,#1a2b38); border-radius:12px; padding:28px; margin:28px 0; text-align:center; color:white;">
+      <div style="font-size:32px; margin-bottom:12px;">📄</div>
+      <h3 style="color:white; margin-bottom:8px;">Save Your Reflections</h3>
+      <p style="color:rgba(255,255,255,0.75); font-size:14px; margin-bottom:20px;">Download a PDF of everything you wrote in this session. Your reflections are saved privately on your device only.</p>
+      <button onclick="downloadReflections()"
+        style="background:#5da0af; color:white; border:none; padding:13px 32px; border-radius:6px; font-size:15px; font-weight:700; cursor:pointer; transition:opacity 0.2s;"
+        onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">
+        ⬇ Download My PDF
+      </button>
+    </div>
+
+    <div style="border-left:4px solid #acc95d; background:#f0f9f7; padding:18px 20px; border-radius:6px; margin:20px 0;">
+      <strong style="color:#6b8f2e;">➡️ Coming Up Next</strong>
+      <p style="margin:8px 0 0;"><strong>Resentment Is a Boundary Signal</strong> — Resentment almost always means something of yours has been going unprotected. In the next session, we look at it not as a flaw, but as data.</p>
+    </div>
+
+    <div style="background:linear-gradient(135deg,#2d5068,#203445); border-radius:10px; padding:28px; margin:28px 0; text-align:center; color:white;">
+      <h3 style="color:white; margin-bottom:10px;">You Don't Have to Do This Alone</h3>
+      <p style="color:rgba(255,255,255,0.85); margin-bottom:20px;">Our drop-in sessions are a space to process, connect, and keep going — with people who understand exactly what this feels like.</p>
+      <a href="https://www.unbrokenpathways.org/registration" target="_blank"
+        style="display:inline-block; background:#5da0af; color:white; padding:13px 32px; border-radius:6px; font-weight:700; font-size:16px; text-decoration:none;">
+        Join a Drop-In Session →
+      </a>
+    </div>
+  </div>
+
+  <div class="nav-buttons">
+    <button class="btn btn-secondary btn-invisible" id="prev-btn" onclick="prevStep()">← Previous</button>
+    <button class="btn btn-primary" id="next-btn" onclick="nextStep()">Continue →</button>
+  </div>
+</div>
+
+<script>
+// ── Airtable ─────────────────────────────────────────────────
+const AIRTABLE_API_KEY = 'YOUR_KEY_HERE';
+const AIRTABLE_BASE_ID = 'YOUR_BASE_ID_HERE';
+const AIRTABLE_TABLE_NAME = 'Module 5 Data';
+function getUserIdentifier() {
+  if (!sessionStorage.getItem('unbroken_session_id'))
+    sessionStorage.setItem('unbroken_session_id', 'anon-' + Date.now());
+  return sessionStorage.getItem('unbroken_session_id');
+}
+async function sendToAirtable(fields) {
+  try {
+    const res = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent(AIRTABLE_TABLE_NAME)}`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ records: [{ fields: { 'User ID': getUserIdentifier(), 'Timestamp': new Date().toISOString(), ...fields } }] })
+    });
+    if (res.ok) showSavedIndicator();
+  } catch(e) { console.warn('Airtable sync failed:', e); }
+}
+function showSavedIndicator() {
+  let el = document.getElementById('airtable-saved');
+  if (!el) {
+    el = document.createElement('div'); el.id = 'airtable-saved';
+    el.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#5da0af;color:white;padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:9999;';
+    document.body.appendChild(el);
+  }
+  el.textContent = '✓ Saved'; el.style.opacity = '1';
+  setTimeout(() => { el.style.opacity = '0'; }, 2500);
+}
+
+// ── Navigation ────────────────────────────────────────────────
+const TOTAL_STEPS = 12;
+let currentStep = 1, guiltScore = 0, guiltRange = '';
+function scrollToTop() {
+  window.scrollTo(0,0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0;
+  const c = document.querySelector('.container'); if (c) c.scrollTop = 0;
+}
+function showStep(n) {
+  document.querySelectorAll('.step-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('step-'+n).classList.add('active');
+  document.getElementById('progress-bar').style.width = (n/TOTAL_STEPS*100)+'%';
+  document.getElementById('step-counter').textContent = 'Step '+n+' of '+TOTAL_STEPS;
+  document.getElementById('prev-btn').classList.toggle('btn-invisible', n===1);
+  document.getElementById('next-btn').textContent = n===TOTAL_STEPS ? 'Finish' : 'Continue →';
+  if (n === TOTAL_STEPS) sendCompletionData();
+  setTimeout(scrollToTop, 50);
+}
+function nextStep() { if (currentStep < TOTAL_STEPS) { currentStep++; showStep(currentStep); } }
+function prevStep() { if (currentStep > 1) { currentStep--; showStep(currentStep); } }
+showStep(1);
+
+// ── Arrival Check-in ────────────────────────────────────────────
+const arrivalResponses = [
+  "That relief is real — and worth paying attention to. Something in you already knows this is true. Let that knowing guide you through this work.",
+  "That's honest — and exactly the right place to start. You don't need to believe it yet. Just stay curious. The work will meet you where you are.",
+  "That loudness makes complete sense. Guilt has been well-practiced for a long time. This work isn't asking you to silence it — just to understand it differently.",
+  "Resistance is information too. It might mean this touches something real. You don't have to agree with any of it — just see if you can stay open enough to look.",
+  "Curious and nervous is a good combination for this work. It means you're taking it seriously. There's nothing you need to figure out before you begin.",
+  "Numbness is a valid nervous system response — especially to something that's been this heavy. You don't need to feel anything right now. Just being here is enough.",
+  "That energy will serve you well. Let's go.",
+  "That's okay. You don't need to know. Just begin, and let this work help you find out."
+];
+function selectArrival(el, idx) {
+  document.querySelectorAll('.arrival-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  const resp = document.getElementById('arrival-response');
+  document.getElementById('arrival-response-text').textContent = arrivalResponses[idx];
+  resp.style.display = 'block';
+  setTimeout(() => { resp.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 100);
+}
+
+// ── Body Map ──────────────────────────────────────────────────
+const bodySelected = {};
+const zoneColorMap = {
+  head:      { fill: '#f4c4a8', stroke: '#d56439' },
+  throat:    { fill: '#fde9a0', stroke: '#dfb852' },
+  shoulders: { fill: '#fde9a0', stroke: '#dfb852' },
+  chest:     { fill: '#f4c4a8', stroke: '#d56439' },
+  stomach:   { fill: '#f4c4a8', stroke: '#d56439' },
+  legs:      { fill: '#b8dce4', stroke: '#5da0af' }
+};
+const zoneFigParts = {
+  head:      ['fig-head'],
+  throat:    ['fig-neck'],
+  shoulders: ['fig-larm', 'fig-rarm'],
+  chest:     ['fig-torso'],
+  stomach:   ['fig-hips'],
+  legs:      ['fig-lleg', 'fig-rleg']
+};
+const zoneContent = {
+  head: {
+    label: 'Head & Mind',
+    title: 'Racing thoughts. The mental loop.',
+    desc: 'Guilt in the head shows up as repetitive thinking — replaying what you should have done differently, rehearsing explanations, scanning for what\'s wrong with you. The mind runs hot, trying to think its way out of a feeling.',
+    tags: ['Racing thoughts', 'Overthinking', 'Self-criticism', 'Can\'t switch off']
+  },
+  throat: {
+    label: 'Throat',
+    title: 'The words that won\'t come.',
+    desc: 'Guilt often sits in the throat as tightness or a held breath — the sensation of something unsaid, swallowed. It can feel like a lump, or a constriction when you try to speak your needs out loud.',
+    tags: ['Tightness', 'Lump in throat', 'Voice goes quiet', 'Hard to ask']
+  },
+  shoulders: {
+    label: 'Shoulders & Arms',
+    title: 'Carrying what isn\'t yours.',
+    desc: 'The shoulders hold the weight of obligation. When guilt has been an operating system for a long time, the body learns to brace — a subtle, constant tension, like bracing for the next ask or the next disappointment.',
+    tags: ['Tension', 'Bracing', 'Heaviness', 'Can\'t relax']
+  },
+  chest: {
+    label: 'Chest',
+    title: 'The ache. The pressure.',
+    desc: 'A tight chest, shallow breathing, a heaviness that doesn\'t lift. This is where guilt registers as grief — the heart-adjacent feeling of having let someone down, or of being let down by the world.',
+    tags: ['Tightness', 'Shallow breath', 'Heavy feeling', 'Aching']
+  },
+  stomach: {
+    label: 'Stomach & Gut',
+    title: 'The dread. The knot.',
+    desc: 'The gut reads threat before the mind catches up. Guilt in the stomach is dread — the low-level nausea of anticipating disapproval, the knot that tightens when you consider saying no, the hollow feeling after you\'ve said yes when you meant no.',
+    tags: ['Knot', 'Nausea', 'Hollow feeling', 'Dread']
+  },
+  legs: {
+    label: 'Legs',
+    title: 'Freeze. Restlessness. The urge to move.',
+    desc: 'Guilt in the legs shows up as two opposites: a leaden heaviness that makes getting started feel impossible, or a restless agitation — the physical need to do something, fix something, prove something, right now.',
+    tags: ['Heavy legs', 'Restlessness', 'Can\'t start', 'Pacing']
+  }
+};
+
+function toggleBodyZone(key, label) {
+  const color = zoneColorMap[key];
+  const parts = zoneFigParts[key] || [];
+  if (bodySelected[key]) {
+    delete bodySelected[key];
+    parts.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.style.fill = ''; el.style.stroke = ''; }
+    });
+  } else {
+    bodySelected[key] = label;
+    parts.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.style.fill = color.fill; el.style.stroke = color.stroke; }
+    });
+  }
+
+  // Update right panel — show most recently tapped zone's content
+  const keys = Object.keys(bodySelected);
+  if (keys.length === 0) {
+    document.getElementById('zone-default').style.display = 'flex';
+    document.getElementById('zone-panel').style.display = 'none';
+  } else {
+    const activeKey = bodySelected[key] ? key : keys[keys.length - 1];
+    const content = zoneContent[activeKey];
+    document.getElementById('zone-default').style.display = 'none';
+    document.getElementById('zone-panel').style.display = 'block';
+    document.getElementById('zone-label').textContent = content.label;
+    document.getElementById('zone-title').textContent = content.title;
+    document.getElementById('zone-desc').textContent = content.desc;
+    document.getElementById('zone-tags').innerHTML = content.tags
+      .map(t => `<span style="padding:4px 10px;background:#e8f4f6;border-radius:20px;font-size:12px;color:#3d7f8f;font-weight:600;">${t}</span>`)
+      .join('');
+  }
+
+  // Update summary chips at bottom
+  const tags = document.getElementById('body-tags');
+  const uniqueLabels = [...new Set(Object.values(bodySelected))];
+  if (uniqueLabels.length === 0) {
+    tags.innerHTML = '<span style="color:#6c757d;font-size:13px;font-style:italic;">Nothing selected yet — tap the figure</span>';
+    document.getElementById('body-science').style.display = 'none';
+  } else {
+    const chipColors = { 'Head & mind':'#d56439','Throat':'#dfb852','Shoulders':'#dfb852','Chest':'#d56439','Stomach & gut':'#d56439','Legs':'#5da0af' };
+    tags.innerHTML = uniqueLabels.map(l => `<span style="padding:4px 12px;background:${chipColors[l]||'#5da0af'};color:white;border-radius:20px;font-size:13px;">${l}</span>`).join('');
+    document.getElementById('body-science').style.display = 'block';
+    document.getElementById('body-zone-echo').textContent = uniqueLabels.join(', ').toLowerCase();
+  }
+}
+
+// ── HGS Cards ─────────────────────────────────────────────────
+function toggleHGS(el) {
+  el.classList.toggle('selected');
+  el.querySelector('.hgs-check').textContent = el.classList.contains('selected') ? '✓' : '○';
+  const count = document.querySelectorAll('.hgs-card.selected').length;
+  const resp = document.getElementById('hgs-response');
+  const txt = document.getElementById('hgs-response-text');
+  if (count === 0) { resp.style.display = 'none'; return; }
+  resp.style.display = 'block';
+  if (count <= 2) txt.textContent = "You're recognizing some of these patterns. That awareness is the beginning of something different.";
+  else if (count <= 5) txt.textContent = "Several of these resonate — which makes complete sense given what you've been carrying. You've been running this program for a long time. This session is about learning a new one.";
+  else txt.textContent = "You've been living inside a system that made these beliefs feel like truth. They're not character traits — they're learned patterns. And patterns can change.";
+}
+
+// ── Reveal Interaction ────────────────────────────────────────
+function revealGuiltItems() {
+  document.getElementById('reveal-guilt-btn').style.display = 'none';
+  const items = document.querySelectorAll('.reveal-item');
+  items.forEach((el, i) => { setTimeout(() => el.classList.add('shown'), i * 130); });
+  setTimeout(() => {
+    const panel = document.getElementById('guidance-panel');
+    panel.style.display = 'block';
+    const gItems = document.querySelectorAll('.guidance-item');
+    gItems.forEach((el, i) => { setTimeout(() => el.classList.add('shown'), i * 130); });
+  }, items.length * 130 + 400);
+}
+
+// ── Limit Selector ─────────────────────────────────────────────
+function selectLimit(el) {
+  document.querySelectorAll('.limit-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('limit-response-text').textContent = el.getAttribute('data-response');
+  document.getElementById('limit-response').style.display = 'block';
+}
+
+// ── Practice Cards ─────────────────────────────────────────────
+function advancePractice(n) {
+  document.querySelectorAll('.practice-card').forEach(c => c.classList.remove('active-card'));
+  const target = (n === 'done') ? document.getElementById('pcard-done') : document.getElementById('pcard-'+n);
+  if (target) { target.classList.remove('active-card'); void target.offsetWidth; target.classList.add('active-card'); }
+}
+
+// ── Story Cards ────────────────────────────────────────────────
+function toggleStory(el) {
+  el.classList.toggle('selected');
+  const any = document.querySelectorAll('.story-card.selected').length > 0;
+  document.getElementById('story-affirm').style.display = any ? 'block' : 'none';
+}
+
+// ── Guilt Assessment ──────────────────────────────────────────
+function scoreGuiltAssessment() {
+  const qs = ['gq1','gq2','gq3','gq4','gq5','gq6'];
+  let total = 0, answered = 0;
+  qs.forEach(n => { const s = document.querySelector(`input[name="${n}"]:checked`); if (s) { total += parseInt(s.value); answered++; } });
+  if (answered < qs.length) { alert('Please respond to all questions before continuing.'); return; }
+  guiltScore = total;
+  let label, badgeColor, badgeBg, interpretation;
+  if (total <= 14) {
+    label='Mild'; badgeColor='#4a6b2a'; badgeBg='#d4edda'; guiltRange='mild';
+    interpretation="Your responses suggest that while guilt is present — as it is for nearly everyone navigating job loss — it doesn't appear to be running the show right now. That resilience is real. This work can help you name and reinforce what's already working.";
+  } else if (total <= 22) {
+    label='Moderate'; badgeColor='#856404'; badgeBg='#fff3cd'; guiltRange='moderate';
+    interpretation="What you're describing is very common at this stage — and it makes complete sense given what you've been through. Guilt has real traction in your day-to-day experience right now: in how you rest, how you set limits, how you hold your own story. You're not falling apart. You're carrying something real. The work ahead is designed specifically for where you are.";
+  } else {
+    label='Significant'; badgeColor='#842029'; badgeBg='#f8d7da'; guiltRange='significant';
+    interpretation="I want you to know: what your responses reflect is someone carrying a very heavy load. Guilt has been a primary operating system — shaping how you understand what happened, how much you deserve to rest, how much your needs matter. This is not a character flaw. This is what happens when someone gives a lot, for a long time, in a system that rewarded sacrifice. You showed up here today. That matters. Please keep going — this work was made for exactly this.";
+  }
+  const badge = document.getElementById('guilt-badge');
+  badge.textContent = label; badge.style.background = badgeBg; badge.style.color = badgeColor;
+  document.getElementById('guilt-interpretation').textContent = interpretation;
+  document.getElementById('guilt-results').style.display = 'block';
+  sendToAirtable({ 'Module': 'Module 5: Guilt Is Not Guidance', 'Assessment': 'Guilt Inventory', 'Score': total, 'Range': label });
+  setTimeout(() => { document.getElementById('guilt-results').scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
+}
+
+// ── Audio ──────────────────────────────────────────────────────
+function getAudio() { return document.getElementById('meditation-audio'); }
+function formatTime(s) { return Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0'); }
+function togglePlay() {
+  const audio = getAudio();
+  if (!audio) return;
+  if (audio.paused) { audio.play(); document.getElementById('play-btn').textContent = '⏸'; }
+  else { audio.pause(); document.getElementById('play-btn').textContent = '▶'; }
+}
+function seekAudio(e) {
+  const audio = getAudio();
+  const bar = document.getElementById('audio-progress-bar'), rect = bar.getBoundingClientRect();
+  if (audio && audio.duration) audio.currentTime = ((e.clientX-rect.left)/rect.width)*audio.duration;
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const audio = getAudio();
+  if (!audio) return;
+  audio.addEventListener('timeupdate', () => {
+    if (audio.duration) {
+      document.getElementById('audio-fill').style.width = (audio.currentTime/audio.duration*100)+'%';
+      document.getElementById('current-time').textContent = formatTime(audio.currentTime);
+    }
+  });
+  audio.addEventListener('loadedmetadata', () => { document.getElementById('total-time').textContent = formatTime(audio.duration); });
+  audio.addEventListener('ended', () => { document.getElementById('play-btn').textContent = '▶'; });
+});
+
+// ── Completion ─────────────────────────────────────────────────
+function sendCompletionData() {
+  sendToAirtable({ 'Module': 'Module 5: Guilt Is Not Guidance', 'Data Type': 'Module Completion', 'Guilt Score': guiltScore, 'Guilt Range': guiltRange, 'Completed At': new Date().toISOString() });
+}
+
+// ── PDF ────────────────────────────────────────────────────────
+function downloadReflections() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:'pt', format:'letter' });
+  const margin=60, pageW=doc.internal.pageSize.getWidth(), maxW=pageW-margin*2;
+  let y=60;
+  function addText(text,size,color,bold,lineH) {
+    doc.setFontSize(size||12); doc.setTextColor(...(color||[32,52,69])); doc.setFont('helvetica',bold?'bold':'normal');
+    doc.splitTextToSize(text,maxW).forEach(line => { if(y>720){doc.addPage();y=60;} doc.text(line,margin,y); y+=(lineH||size*1.5||18); });
+  }
+  function addDivider() { y+=6; doc.setDrawColor(200,200,200); doc.line(margin,y,pageW-margin,y); y+=14; }
+  addText('UnBroken – Guilt Is Not Guidance',18,[32,52,69],true,26);
+  addText('My Reflections',13,[93,160,175],false,20);
+  addText(new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}),11,[108,117,125],false,22);
+  addDivider();
+  [
+    { label: 'Where did I first learn that sacrificing myself meant I cared?', id: 'reflect-3' },
+    { label: 'A time I collapsed a limit — what I was protecting, and what it cost:', id: 'reflect-7' },
+    { label: 'The alternative story — the one that\'s also true:', id: 'reflect-9b' }
+  ].forEach(s => {
+    const val = (document.getElementById(s.id)?.value||'').trim();
+    if (val) { addText(s.label,11,[108,117,125],true,16); y+=4; addText(val,12,[32,52,69],false,17); y+=8; addDivider(); }
+  });
+  if (guiltRange) {
+    addText('Guilt Inventory Result',11,[108,117,125],true,16); y+=4;
+    addText('Score range: '+guiltRange.charAt(0).toUpperCase()+guiltRange.slice(1),12,[32,52,69],false,17); y+=16;
+  }
+  addText('unbrokenpathways.org',10,[93,160,175],false,14);
+  doc.save('unbroken-module-5-reflections.pdf');
+}
+
+
+</script>
+
+<footer style="text-align:center; padding:24px 20px; font-size:12px; color:rgba(255,255,255,0.45); max-width:800px; margin:0 auto;">
+  Created with care by Places to Thrive, Inc. © 2025 | The UnBroken Project | unbrokenpathways.org
+</footer>
+</body>
+</html>
